@@ -64,25 +64,25 @@ const Landing = () => {
       </div>
 
       {/* Header navbar */}
-      <header className="relative max-w-7xl mx-auto px-6 h-20 flex items-center justify-between z-10">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-white text-xl">
+      <header className="relative max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between z-10">
+        <div className="flex items-center space-x-1.5 sm:space-x-2.5">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-white text-base sm:text-xl">
             S
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-emerald-400">
+          <span className="font-extrabold text-base sm:text-2xl tracking-tight text-emerald-400">
             SpendWise AI
           </span>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-1.5 sm:space-x-4">
           <button 
             onClick={() => navigate('/login')}
-            className="text-gray-400 hover:text-white transition font-medium text-sm px-4 py-2"
+            className="text-gray-400 hover:text-white transition font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2"
           >
             Sign In
           </button>
           <button 
             onClick={() => navigate('/register')}
-            className="bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-5 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition duration-150 transform hover:-translate-y-0.5"
+            className="bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-3 py-1.5 sm:px-5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition duration-150 transform hover:-translate-y-0.5 whitespace-nowrap"
           >
             Get Started
           </button>
