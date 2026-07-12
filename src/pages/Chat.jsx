@@ -104,7 +104,7 @@ const Chat = () => {
               <h3 className="font-extrabold text-sm text-gray-200">SpendWise Finance Agent</h3>
               <span className="text-[10px] text-emerald-500 font-semibold flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>Active & transacting on Celo Sepolia</span>
+                <span>Active & transacting on Celo Mainnet</span>
               </span>
             </div>
           </div>
@@ -248,7 +248,7 @@ const Chat = () => {
           darkMode ? 'bg-[#0D121F] border-gray-800' : 'bg-white border-gray-200'
         }`}>
           <p className="font-bold text-gray-300 uppercase tracking-wider text-[10px]">AGENT CAPABILITIES</p>
-          <p>✔ **cUSD On-chain Moves**: Execute actual transfers on Celo Sepolia.</p>
+          <p>✔ **USDm On-chain Moves**: Execute actual transfers on Celo Mainnet.</p>
           <p>✔ **Limit Controls**: Modify category budgets via text.</p>
           <p>✔ **Autonomy**: Rules are evaluated in background even when logged off.</p>
         </div>

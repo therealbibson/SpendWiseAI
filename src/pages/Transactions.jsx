@@ -28,6 +28,7 @@ const Transactions = () => {
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [tokenSymbol, setTokenSymbol] = useState('USDm');
 
   // Import Statement simulation
   const [importing, setImporting] = useState(false);
@@ -86,6 +87,7 @@ const Transactions = () => {
         type: txType,
         paymentMethod: txMethod,
         recipientAddress: recipient,
+        tokenSymbol: txMethod === 'celo' ? tokenSymbol : undefined,
         description
       });
       setOpenModal(false);
@@ -107,7 +109,7 @@ const Transactions = () => {
     // Create some premium mock transactions
     const mockTxs = [
       { title: 'Whole Foods Market', amount: 84.50, category: 'Food', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), paymentMethod: 'card', type: 'expense' },
-      { title: 'Celo Faucet Claim', amount: 10.00, category: 'Savings', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), paymentMethod: 'celo', type: 'income' },
+      { title: 'USDm Deposit', amount: 10.00, category: 'Savings', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), paymentMethod: 'celo', type: 'income' },
       { title: 'Shell Gas Station', amount: 45.00, category: 'Transport', date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), paymentMethod: 'cash', type: 'expense' },
       { title: 'Starbucks Coffee', amount: 6.75, category: 'Food', date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), paymentMethod: 'card', type: 'expense' },
       { title: 'Salary Deposit', amount: 1200.00, category: 'General', date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), paymentMethod: 'card', type: 'income' },
@@ -136,20 +138,9 @@ const Transactions = () => {
           <h2 className={`text-2xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Transaction History
           </h2>
-          <p className="text-gray-400 text-sm">Add manual cash entries, import logs, or trigger Celo payments.</p>
+          <p className="text-gray-400 text-sm">Add manual cash entries or trigger Celo payments.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button
-            onClick={handleImportMock}
-            disabled={importing}
-            className={`flex items-center space-x-1.5 px-4 py-2.5 border rounded-xl text-xs font-semibold shadow-sm transition ${
-              darkMode ? 'bg-[#0D121F] border-gray-800 hover:bg-gray-800 text-gray-300' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
-            }`}
-          >
-            <FileSpreadsheet className="w-4.5 h-4.5 text-blue-400" />
-            <span>{importing ? 'Importing...' : 'Import Statement'}</span>
-          </button>
-
           <button
             onClick={() => setOpenModal(true)}
             className="bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition"
@@ -209,7 +200,7 @@ const Transactions = () => {
             <option value="">All Payment Methods</option>
             <option value="cash">Cash</option>
             <option value="card">Card</option>
-            <option value="celo">Celo (cUSD)</option>
+            <option value="celo">Celo (USDm)</option>
           </select>
 
           {/* Type Filter */}
@@ -249,7 +240,7 @@ const Transactions = () => {
                   <th className="p-4 font-bold text-gray-500 hidden sm:table-cell">CATEGORY</th>
                   <th className="p-4 font-bold text-gray-500 hidden md:table-cell">PAYMENT METHOD</th>
                   <th className="p-4 font-bold text-gray-500 hidden sm:table-cell">DATE</th>
-                  <th className="p-4 font-bold text-gray-500 text-right">AMOUNT (cUSD)</th>
+                  <th className="p-4 font-bold text-gray-500 text-right">AMOUNT</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/10">
@@ -279,7 +270,7 @@ const Transactions = () => {
                               </span>
                               {tx.blockchainHash && (
                                 <a 
-                                  href={`https://celo-sepolia.blockscout.com/tx/${tx.blockchainHash}`}
+                                  href={`https://celoscan.io/tx/${tx.blockchainHash}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-[9px] text-blue-400 hover:underline flex items-center space-x-0.5"
@@ -304,7 +295,7 @@ const Transactions = () => {
                           </span>
                           {tx.blockchainHash && (
                             <a 
-                              href={`https://celo-sepolia.blockscout.com/tx/${tx.blockchainHash}`}
+                              href={`https://celoscan.io/tx/${tx.blockchainHash}`}
                               target="_blank"
                               rel="noreferrer"
                               className="text-[9px] text-blue-400 hover:underline flex items-center space-x-0.5 mt-0.5"
@@ -320,7 +311,7 @@ const Transactions = () => {
                       </td>
                       <td className="p-4 text-right">
                         <p className={`font-extrabold text-sm ${isExpense ? 'text-red-400' : 'text-emerald-400'}`}>
-                          {isExpense ? '-' : '+'}${tx.amount.toFixed(2)}
+                          {isExpense ? '-' : '+'}{tx.paymentMethod === 'celo' ? '' : '$'}{tx.amount.toFixed(tx.tokenSymbol === 'USDC' || tx.tokenSymbol === 'USDT' ? 2 : 4)}{tx.paymentMethod === 'celo' ? ` ${tx.tokenSymbol || 'USDm'}` : ''}
                         </p>
                       </td>
                     </tr>
@@ -339,7 +330,7 @@ const Transactions = () => {
             darkMode ? 'bg-[#0D121F] border-gray-850 text-gray-100' : 'bg-white border-gray-200 text-gray-850'
           }`}>
             <h3 className="text-lg font-bold mb-2">Record Transaction</h3>
-            <p className="text-xs text-gray-500 mb-6">Log manual expenses or submit Celo blockchain cUSD transfers.</p>
+            <p className="text-xs text-gray-500 mb-6">Log manual expenses or submit Celo blockchain USDm transfers.</p>
 
             {error && (
               <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center space-x-2">
@@ -375,7 +366,7 @@ const Transactions = () => {
                   >
                     <option value="cash">Cash</option>
                     <option value="card">Card</option>
-                    <option value="celo">Celo (cUSD)</option>
+                    <option value="celo">Celo (USDm)</option>
                   </select>
                 </div>
               </div>
@@ -404,19 +395,39 @@ const Transactions = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Amount (cUSD / USD)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
-                />
+              <div className={txMethod === 'celo' ? 'grid grid-cols-2 gap-4' : ''}>
+                {txMethod === 'celo' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                      Token / Asset
+                    </label>
+                    <select
+                      value={tokenSymbol}
+                      onChange={(e) => setTokenSymbol(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
+                    >
+                      <option value="CELO">CELO (Celo Native)</option>
+                      <option value="USDm">USDm (Mento Dollar)</option>
+                      <option value="EURm">EURm (Mento Euro)</option>
+                      <option value="USDC">USDC (Circle USDC)</option>
+                      <option value="USDT">USDT (Tether USD)</option>
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Amount {txMethod === 'celo' ? `(${tokenSymbol})` : '(USDm / USD)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
+                  />
+                </div>
               </div>
 
               {txMethod === 'celo' && txType === 'expense' && (

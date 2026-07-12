@@ -118,7 +118,7 @@ const Subscriptions = () => {
         <div className={`p-12 text-center rounded-3xl border border-dashed ${
           darkMode ? 'border-gray-800 text-gray-500' : 'border-gray-200 text-gray-400'
         }`}>
-          No subscriptions scheduled. Click "New Subscription" to set up recurring cUSD payments.
+          No subscriptions scheduled. Click "New Subscription" to set up recurring USDm payments.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -226,7 +226,7 @@ const Subscriptions = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                    Amount (cUSD)
+                    Amount (USDm)
                   </label>
                   <input
                     type="number"
@@ -294,7 +294,7 @@ const Subscriptions = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] rounded-xl text-xs font-bold flex items-center justify-center animate-pulse"
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] rounded-xl text-xs font-bold flex items-center justify-center"
                 >
                   {submitting ? (
                     <span className="w-5 h-5 border-2 border-[#080B11]/25 border-t-[#080B11] rounded-full animate-spin"></span>

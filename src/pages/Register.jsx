@@ -42,28 +42,27 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-[#080B11] flex flex-col md:flex-row items-center justify-center p-4 relative overflow-hidden">
       
-      {/* Glow Effects */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-500/10 blur-[120px] pointer-events-none"></div>
+      {/* Subtle Background */}
+      <div className="absolute inset-0 bg-[#080B11] pointer-events-none opacity-5 z-0"></div>
 
       {/* Info Column (Desktop Only) */}
       <div className="hidden lg:flex flex-col max-w-md mr-12 text-left relative z-10">
         <div className="inline-flex items-center space-x-2.5 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center font-bold text-white text-xl">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-white text-xl">
             S
           </div>
-          <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
+          <span className="font-extrabold text-2xl tracking-tight text-emerald-400">
             SpendWise AI
           </span>
         </div>
         <h2 className="text-4xl font-extrabold text-white mb-6 leading-tight">
           Create your <br />
-          <span className="bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
+          <span className="text-emerald-400">
             Autonomous Wallet
           </span>
         </h2>
         <p className="text-gray-400 text-sm leading-relaxed mb-8">
-          When you sign up, SpendWise generates a secure, custodial smart wallet address on the Celo Sepolia blockchain automatically. You will receive complete ownership credentials, letting you automate payments autonomously.
+          When you sign up, SpendWise generates a secure, custodial smart wallet address on the Celo Mainnet blockchain automatically. You will receive complete ownership credentials, letting you automate payments autonomously.
         </p>
         <div className="space-y-4 text-xs">
           <div className="flex items-start space-x-3">
@@ -93,10 +92,10 @@ const Register = () => {
         {/* Title */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex lg:hidden items-center space-x-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center font-bold text-white text-md">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-white text-md">
               S
             </div>
-            <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
+            <span className="font-extrabold text-xl tracking-tight text-emerald-400">
               SpendWise AI
             </span>
           </Link>
@@ -201,7 +200,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-400 hover:to-blue-400 text-white font-bold rounded-xl text-sm shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/25 flex items-center justify-center space-x-2 transition duration-150"
+              className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] font-bold rounded-xl text-sm shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/25 flex items-center justify-center space-x-2 transition duration-150"
             >
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>

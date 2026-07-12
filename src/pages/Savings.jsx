@@ -122,7 +122,7 @@ const Savings = () => {
           <h2 className={`text-2xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Savings Goals
           </h2>
-          <p className="text-gray-400 text-sm">Save cUSD towards specific purchases. AI automatically detects idle cash.</p>
+          <p className="text-gray-400 text-sm">Save USDm towards specific purchases. AI automatically detects idle cash.</p>
         </div>
         <button
           onClick={() => setOpenGoalModal(true)}
@@ -136,7 +136,7 @@ const Savings = () => {
       {/* AI RECOMMENDATIONS SECTION */}
       {insights.length > 0 && (
         <div className={`p-6 rounded-3xl border ${
-          darkMode ? 'bg-gradient-to-r from-blue-500/5 to-emerald-500/5 border-emerald-500/20' : 'bg-emerald-50/30 border-emerald-200'
+          darkMode ? 'bg-[#0D121F] border-emerald-500/20' : 'bg-emerald-50/30 border-emerald-200'
         }`}>
           <div className="flex items-center space-x-2 text-emerald-400 mb-4">
             <Sparkles className="w-5 h-5 animate-pulse" />
@@ -174,7 +174,7 @@ const Savings = () => {
         <div className={`p-12 text-center rounded-3xl border border-dashed ${
           darkMode ? 'border-gray-800 text-gray-500' : 'border-gray-200 text-gray-400'
         }`}>
-          No savings goals created. Start saving cUSD now by defining a target.
+          No savings goals created. Start saving USDm now by defining a target.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -232,7 +232,7 @@ const Savings = () => {
                     <div className={`w-full h-2 rounded-full overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                       <div 
                         className={`h-full transition-all duration-300 ${
-                          isCompleted ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 'bg-gradient-to-r from-blue-500 to-emerald-500'
+                          isCompleted ? 'bg-emerald-500' : 'bg-blue-500'
                         }`}
                         style={{ width: `${Math.min(100, progressPercent)}%` }}
                       ></div>
@@ -283,7 +283,7 @@ const Savings = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                    Target Amount (cUSD)
+                    Target Amount (USDm)
                   </label>
                   <input
                     type="number"
@@ -346,7 +346,7 @@ const Savings = () => {
           }`}>
             <h3 className="text-lg font-bold mb-2">Goal Deposit: {selectedGoal.name}</h3>
             <p className="text-xs text-gray-500 mb-6">
-              Transfer cUSD from your smart wallet to this savings target.
+              Transfer USDm from your smart wallet to this savings target.
             </p>
 
             {error && (
@@ -359,7 +359,7 @@ const Savings = () => {
             <form onSubmit={handleDeposit} className="space-y-4 text-left">
               <div>
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Deposit Amount (cUSD)
+                  Deposit Amount (USDm)
                 </label>
                 <input
                   type="number"
@@ -388,7 +388,7 @@ const Savings = () => {
                   {submitting ? (
                     <span className="w-5 h-5 border-2 border-[#080B11]/25 border-t-[#080B11] rounded-full animate-spin"></span>
                   ) : (
-                    'Transfer cUSD'
+                    'Transfer USDm'
                   )}
                 </button>
               </div>

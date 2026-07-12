@@ -117,12 +117,11 @@ const Settings = () => {
     let actionMetadata = {};
 
     if (triggerCondition === 'balance_below') {
-      description = `If wallet balance drops below $${triggerValue} cUSD`;
+      description = `If wallet balance drops below $${triggerValue} USDm`;
     } else if (triggerCondition === 'category_percent_above') {
       description = `If ${triggerCategory} spending reaches ${triggerValue}% of budget`;
-      triggerMetadata.category = triggerCategory;
     } else if (triggerCondition === 'category_value_above') {
-      description = `If ${triggerCategory} spending exceeds $${triggerValue} cUSD`;
+      description = `If ${triggerCategory} spending exceeds $${triggerValue} USDm`;
       triggerMetadata.category = triggerCategory;
     } else if (triggerCondition === 'leftover_budget') {
       description = `If ${triggerCategory} budget has $${triggerValue} remaining at end of month`;
@@ -135,7 +134,7 @@ const Settings = () => {
       description += `, stop recommending card transactions.`;
     } else if (actionType === 'transfer_savings') {
       const goal = savingsGoals.find(g => g._id === actionGoal);
-      description += `, transfer $${actionValue} cUSD to savings goal "${goal ? goal.name : 'Vault'}".`;
+      description += `, transfer $${actionValue} USDm to savings goal "${goal ? goal.name : 'Vault'}".`;
       actionMetadata.savingsGoalId = actionGoal;
     }
 
@@ -552,12 +551,12 @@ const Settings = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Trigger Value (cUSD or %)
+                  Trigger Value (USDm or %)
                 </label>
                 <input
                   type="number"
                   required
-                  placeholder={triggerCondition === 'category_percent_above' ? 'e.g. 90 (for 90%)' : 'e.g. 30.00 (cUSD)'}
+                  placeholder={triggerCondition === 'category_percent_above' ? 'e.g. 90 (for 90%)' : 'e.g. 30.00 (USDm)'}
                   value={triggerValue}
                   onChange={(e) => setTriggerValue(e.target.value)}
                   className="w-full px-4 py-3 bg-[#131926] border border-gray-850 focus:border-emerald-500/50 rounded-xl text-sm text-gray-350 outline-none"
@@ -583,7 +582,7 @@ const Settings = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                      Transfer Amount (cUSD)
+                      Transfer Amount (USDm)
                     </label>
                     <input
                       type="number"
@@ -623,7 +622,7 @@ const Settings = () => {
                 <button
                   type="submit"
                   disabled={savingRule}
-                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] rounded-xl text-xs font-bold flex items-center justify-center animate-pulse"
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] rounded-xl text-xs font-bold flex items-center justify-center"
                 >
                   {savingRule ? (
                     <span className="w-5 h-5 border-2 border-[#080B11]/25 border-t-[#080B11] rounded-full animate-spin"></span>

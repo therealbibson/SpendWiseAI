@@ -133,8 +133,8 @@ const Insights = () => {
         </div>
 
         {/* EOM Forecast Card */}
-        <div className={`p-6 rounded-3xl border flex items-center justify-between bg-gradient-to-br ${
-          darkMode ? 'from-[#0D121F] to-[#15233A] border-gray-800' : 'from-white to-gray-50/50 border-gray-200'
+        <div className={`p-6 rounded-3xl border flex items-center justify-between ${
+          darkMode ? 'bg-[#0D121F] border-gray-800' : 'bg-white border-gray-200'
         }`}>
           <div>
             <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Predicted EOM Balance</span>

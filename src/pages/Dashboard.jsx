@@ -19,6 +19,17 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Send Asset Modal State
+  const [openSendModal, setOpenSendModal] = useState(false);
+  const [sendTokenSymbol, setSendTokenSymbol] = useState('USDm');
+  const [sendRecipient, setSendRecipient] = useState('');
+  const [sendAmount, setSendAmount] = useState('');
+  const [sendCategory, setSendCategory] = useState('general');
+  const [sendDescription, setSendDescription] = useState('');
+  const [sendError, setSendError] = useState('');
+  const [sendSubmitting, setSendSubmitting] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
+
   const fetchData = async () => {
     try {
       const [statsData, budgetsData, txsData, goalsData, subsData, insightsData] = await Promise.all([
@@ -44,7 +55,15 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    const initDashboard = async () => {
+      try {
+        await refreshWalletBalance();
+      } catch (err) {
+        console.error('Auto-sync wallet failed:', err);
+      }
+      fetchData();
+    };
+    initDashboard();
   }, []);
 
   const handleRefresh = async () => {
@@ -59,6 +78,47 @@ const Dashboard = () => {
       navigator.clipboard.writeText(wallet.address);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleSendAsset = async (e) => {
+    e.preventDefault();
+    if (!sendAmount || sendAmount <= 0) return setSendError('Invalid send amount.');
+    if (!sendRecipient) return setSendError('Recipient address is required.');
+
+    setSendSubmitting(true);
+    setSendError('');
+    setSendSuccess(false);
+
+    try {
+      await api.createTransaction({
+        title: `Transfer: ${sendTokenSymbol}`,
+        amount: parseFloat(sendAmount),
+        category: sendCategory,
+        type: 'expense',
+        paymentMethod: 'celo',
+        recipientAddress: sendRecipient,
+        tokenSymbol: sendTokenSymbol,
+        description: sendDescription
+      });
+      
+      setSendSuccess(true);
+      setSendRecipient('');
+      setSendAmount('');
+      setSendDescription('');
+      
+      // Auto refresh data
+      await refreshWalletBalance();
+      await fetchData();
+
+      setTimeout(() => {
+        setOpenSendModal(false);
+        setSendSuccess(false);
+      }, 2000);
+    } catch (err) {
+      setSendError(err.message || 'Transaction execution failed.');
+    } finally {
+      setSendSubmitting(false);
     }
   };
 
@@ -112,34 +172,22 @@ const Dashboard = () => {
           </h2>
           <p className="text-gray-400 text-sm">Real-time status of your SpendWise Smart Wallet.</p>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className={`flex items-center space-x-2 px-4 py-2 border rounded-xl text-xs font-semibold shadow-sm transition ${
-            darkMode ? 'bg-[#0D121F] border-gray-800 hover:bg-gray-800 text-gray-300' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
-          }`}
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>{refreshing ? 'Syncing...' : 'Sync Blockchain'}</span>
-        </button>
       </div>
 
       {/* CORE STATS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Wallet Balance Card */}
-        <div className={`p-6 rounded-3xl border relative overflow-hidden flex flex-col justify-between h-52 bg-gradient-to-br ${
-          darkMode ? 'from-[#0D121F] to-[#151D30] border-gray-800' : 'from-white to-gray-50/50 border-gray-200'
+        <div className={`p-6 rounded-3xl border relative overflow-hidden flex flex-col justify-between h-52 ${
+          darkMode ? 'bg-[#0D121F] border-gray-800' : 'bg-white border-gray-200'
         }`}>
-          {/* Card background glowing orb */}
-          <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-emerald-500/10 blur-[40px] pointer-events-none"></div>
           
           <div className="flex justify-between items-start">
             <div>
               <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Celo Wallet Balance</span>
               <h3 className="text-3xl font-extrabold mt-1 tracking-tight">
                 ${wallet?.balance.toFixed(2) || '0.00'}{' '}
-                <span className="text-xs text-emerald-500 font-bold">cUSD</span>
+                <span className="text-xs text-emerald-500 font-bold">USDm</span>
               </h3>
             </div>
             <div className={`p-2.5 rounded-xl ${darkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
@@ -189,7 +237,7 @@ const Dashboard = () => {
             </div>
             <div className={`w-full h-2.5 rounded-full overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-300"
+                className="h-full bg-emerald-500 transition-all duration-300"
                 style={{ width: `${totalBudgetLimit > 0 ? Math.min(100, (totalBudgetSpent / totalBudgetLimit) * 100) : 0}%` }}
               ></div>
             </div>
@@ -204,7 +252,7 @@ const Dashboard = () => {
             <div>
               <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Budget Health Score</span>
               <div className="flex items-baseline space-x-2">
-                <h3 className="text-4xl font-extrabold mt-1 tracking-tight bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
+                <h3 className="text-4xl font-extrabold mt-1 tracking-tight text-emerald-400">
                   {healthScore}
                 </h3>
                 <span className="text-xs text-gray-400">/ 100</span>
@@ -231,6 +279,56 @@ const Dashboard = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* WALLET ASSETS LIST & QUICK SEND */}
+      <div className={`p-6 rounded-3xl border ${
+        darkMode ? 'bg-[#0D121F] border-gray-800' : 'bg-white border-gray-200'
+      }`}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">Wallet Assets & Balances</h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">Real-time balances of Celo Mainnet tokens. Click "Send" to transfer any token directly.</p>
+          </div>
+          <button
+            onClick={() => {
+              setSendTokenSymbol('USDm');
+              setOpenSendModal(true);
+            }}
+            className="bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1"
+          >
+            <span>Send Asset</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {(wallet?.balances || [
+            { symbol: 'CELO', name: 'Celo Native', balance: wallet?.balance || 0, isNative: true },
+            { symbol: 'USDm', name: 'Mento Dollar', balance: wallet?.balance || 0 },
+            { symbol: 'EURm', name: 'Mento Euro', balance: 0.0 },
+            { symbol: 'USDC', name: 'USDC (Circle)', balance: 0.0 },
+            { symbol: 'USDT', name: 'Tether USD', balance: 0.0 }
+          ]).map((token) => (
+            <div key={token.symbol} className="p-4 bg-[#131926]/40 border border-gray-850 rounded-2xl flex flex-col justify-between h-28">
+              <div>
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">{token.name}</span>
+                <h4 className="text-lg font-extrabold mt-1 text-gray-200 truncate">
+                  {token.balance.toFixed(token.decimals === 6 ? 2 : 4)}{' '}
+                  <span className="text-[10px] text-emerald-500 font-bold">{token.symbol}</span>
+                </h4>
+              </div>
+              <button
+                onClick={() => {
+                  setSendTokenSymbol(token.symbol);
+                  setOpenSendModal(true);
+                }}
+                className="text-[10px] text-left text-emerald-400 hover:text-emerald-300 font-bold transition"
+              >
+                Send {token.symbol} →
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* MID PANEL: CHARTS & AI SUMMARY */}
@@ -263,7 +361,7 @@ const Dashboard = () => {
                     </div>
                     {/* Bar */}
                     <div 
-                      className="w-full rounded-t-md bg-gradient-to-t from-emerald-500 to-blue-500 hover:from-emerald-400 hover:to-blue-400 transition-all duration-300"
+                      className="w-full rounded-t-md bg-emerald-500 hover:bg-emerald-400 transition-all duration-300"
                       style={{ height: `${heightPercent}%` }}
                     ></div>
                     {/* Label */}
@@ -341,7 +439,7 @@ const Dashboard = () => {
 
         {transactions.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-500">
-            No transactions found. Add a transaction manually or send cUSD to populate your activity!
+            No transactions found. Add a transaction manually or deposit USDm to populate your activity!
           </div>
         ) : (
           <div className="divide-y divide-gray-800/10">
@@ -374,11 +472,11 @@ const Dashboard = () => {
                   
                   <div className="text-right">
                     <p className={`font-extrabold text-sm ${isExpense ? 'text-red-400' : 'text-emerald-400'}`}>
-                      {isExpense ? '-' : '+'}${tx.amount.toFixed(2)}
+                      {isExpense ? '-' : '+'}{tx.paymentMethod === 'celo' ? '' : '$'}{tx.amount.toFixed(tx.tokenSymbol === 'USDC' || tx.tokenSymbol === 'USDT' ? 2 : 4)}{tx.paymentMethod === 'celo' ? ` ${tx.tokenSymbol || 'USDm'}` : ''}
                     </p>
                     {tx.blockchainHash && (
                       <a 
-                        href={`https://celo-sepolia.blockscout.com/tx/${tx.blockchainHash}`}
+                        href={`https://celoscan.io/tx/${tx.blockchainHash}`}
                         target="_blank"
                         rel="noreferrer"
                         className="text-[9px] text-blue-400 hover:underline block mt-0.5"
@@ -393,6 +491,138 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* SEND ASSET MODAL */}
+      {openSendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+          <div className={`w-full max-w-md border p-6 rounded-2xl relative shadow-2xl text-left ${
+            darkMode ? 'bg-[#0D121F] border-gray-850 text-gray-100' : 'bg-white border-gray-200 text-gray-850'
+          }`}>
+            <h3 className="text-lg font-bold mb-2 text-white">Send On-chain Asset</h3>
+            <p className="text-xs text-gray-500 mb-6">Transfer any Celo Mainnet token directly from your smart wallet.</p>
+
+            {sendError && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                <span>{sendError}</span>
+              </div>
+            )}
+
+            {sendSuccess && (
+              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center space-x-2">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                <span>Transfer executed successfully on Celo Mainnet!</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSendAsset} className="space-y-4 text-left">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Token / Asset
+                  </label>
+                  <select
+                    value={sendTokenSymbol}
+                    onChange={(e) => setSendTokenSymbol(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
+                  >
+                    <option value="CELO">CELO (Celo Native)</option>
+                    <option value="USDm">USDm (Mento Dollar)</option>
+                    <option value="EURm">EURm (Mento Euro)</option>
+                    <option value="USDC">USDC (Circle USDC)</option>
+                    <option value="USDT">USDT (Tether USD)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Amount
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    placeholder="0.00"
+                    value={sendAmount}
+                    onChange={(e) => setSendAmount(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Recipient Celo Wallet Address
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="0x..."
+                  value={sendRecipient}
+                  onChange={(e) => setSendRecipient(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Category (for budgets)
+                  </label>
+                  <select
+                    value={sendCategory}
+                    onChange={(e) => setSendCategory(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
+                  >
+                    <option value="general">General</option>
+                    <option value="food">Food</option>
+                    <option value="transport">Transport</option>
+                    <option value="shopping">Shopping</option>
+                    <option value="bills">Bills</option>
+                    <option value="savings">Savings</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="health">Health</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Memo/Description (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Weekly coffee"
+                    value={sendDescription}
+                    onChange={(e) => setSendDescription(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-300 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setOpenSendModal(false)}
+                  className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-xl text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={sendSubmitting || sendSuccess}
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] rounded-xl text-xs font-bold flex items-center justify-center"
+                >
+                  {sendSubmitting ? (
+                    <span className="w-5 h-5 border-2 border-[#080B11]/25 border-t-[#080B11] rounded-full animate-spin"></span>
+                  ) : (
+                    'Execute Send'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

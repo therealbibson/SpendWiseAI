@@ -89,10 +89,10 @@ const Layout = ({ children }) => {
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-inherit">
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center font-bold text-white text-lg">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-white text-lg">
               S
             </div>
-            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
+            <span className="font-bold text-xl tracking-tight text-emerald-500">
               SpendWise AI
             </span>
           </Link>
@@ -109,7 +109,7 @@ const Layout = ({ children }) => {
                 onClick={() => navigate(item.path)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-150 font-medium ${
                   isActive 
-                    ? (darkMode ? 'bg-gradient-to-r from-emerald-500/10 to-blue-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-100')
+                    ? (darkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-100')
                     : (darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900')
                 }`}
               >
@@ -124,7 +124,7 @@ const Layout = ({ children }) => {
         <div className="p-4 border-t border-inherit">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-white">
+              <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center font-semibold text-white">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
               <div className="max-w-[120px]">
@@ -148,10 +148,10 @@ const Layout = ({ children }) => {
         darkMode ? 'bg-[#0D121F] border-gray-800' : 'bg-white border-gray-200'
       }`}>
         <Link to="/dashboard" className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center font-bold text-white text-lg">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-white text-lg">
             S
           </div>
-          <span className="font-bold text-lg bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent">
+          <span className="font-bold text-lg text-emerald-500">
             SpendWise
           </span>
         </Link>
@@ -231,7 +231,7 @@ const Layout = ({ children }) => {
                 darkMode ? 'bg-[#151D30]/60 border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'
               }`}>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-gray-400">Sepolia:</span>
+                <span className="text-gray-400">Mainnet:</span>
                 <span className="font-mono text-gray-300">
                   {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
                 </span>
@@ -243,11 +243,11 @@ const Layout = ({ children }) => {
                   {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <a 
-                  href="https://faucet.celo.org/celo-sepolia" 
+                  href={`https://celoscan.io/address/${wallet.address}`} 
                   target="_blank" 
                   rel="noreferrer" 
                   className="p-1 rounded text-blue-400 hover:bg-blue-500/10 flex items-center space-x-0.5"
-                  title="Celo Faucet"
+                  title="View on Celoscan"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
