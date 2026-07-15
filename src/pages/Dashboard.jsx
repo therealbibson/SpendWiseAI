@@ -467,49 +467,53 @@ const Dashboard = () => {
 
         {transactions.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-500">
-            No transactions found. Add a transaction manually or deposit USDm to populate your activity!
+            No transactions yet. Add a transaction or send a token to get started!
           </div>
         ) : (
           <div className="divide-y divide-gray-800/10">
             {transactions.slice(0, 5).map((tx) => {
               const isExpense = tx.type === 'expense';
-              const catClass = categoryColors[tx.category.toLowerCase()] || categoryColors.general;
-              
+              const catClass = categoryColors[tx.category?.toLowerCase()] || categoryColors.general;
+              const tokenLabel = tx.tokenSymbol || (tx.paymentMethod === 'celo' ? 'USDm' : '');
+              const isCelo = tx.paymentMethod === 'celo';
+              const decimals = (tx.tokenSymbol === 'USDC' || tx.tokenSymbol === 'USDT') ? 2 : 4;
+              const amountStr = `${isExpense ? '-' : '+'}${isCelo ? '' : '$'}${tx.amount.toFixed(decimals)}${isCelo && tokenLabel ? ` ${tokenLabel}` : ''}`;
+
               return (
-                <div key={tx._id} className="py-4 flex items-center justify-between hover:bg-gray-800/5 px-2 rounded-xl transition duration-150">
-                  <div className="flex items-center space-x-3.5">
-                    <div className={`p-2.5 rounded-xl ${
-                      isExpense 
-                        ? 'bg-red-500/10 text-red-400' 
-                        : 'bg-emerald-500/10 text-emerald-400'
-                    }`}>
-                      {isExpense ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-gray-200">{tx.title}</p>
-                      <div className="flex items-center space-x-2 mt-0.5">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${catClass}`}>
-                          {tx.category}
-                        </span>
-                        <span className="text-[10px] text-gray-500">
-                          {tx.paymentMethod.toUpperCase()} • {new Date(tx.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
+                <div key={tx._id} className="py-3 flex items-center gap-3 hover:bg-gray-800/5 px-2 rounded-xl transition duration-150">
+                  {/* Icon */}
+                  <div className={`flex-shrink-0 p-2 rounded-xl ${
+                    isExpense ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'
+                  }`}>
+                    {isExpense ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                  </div>
+
+                  {/* Title + meta — flex-1 + min-w-0 prevents overflow */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-gray-200 truncate">{tx.title}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${catClass}`}>
+                        {tx.category}
+                      </span>
+                      <span className="text-[10px] text-gray-500 truncate">
+                        {tx.paymentMethod?.toUpperCase()} · {new Date(tx.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <p className={`font-extrabold text-sm ${isExpense ? 'text-red-400' : 'text-emerald-400'}`}>
-                      {isExpense ? '-' : '+'}{tx.paymentMethod === 'celo' ? '' : '$'}{tx.amount.toFixed(tx.tokenSymbol === 'USDC' || tx.tokenSymbol === 'USDT' ? 2 : 4)}{tx.paymentMethod === 'celo' ? ` ${tx.tokenSymbol || 'USDm'}` : ''}
+
+                  {/* Amount — flex-shrink-0 so it never squashes */}
+                  <div className="flex-shrink-0 text-right ml-1">
+                    <p className={`font-extrabold text-sm whitespace-nowrap ${isExpense ? 'text-red-400' : 'text-emerald-400'}`}>
+                      {amountStr}
                     </p>
                     {tx.blockchainHash && (
-                      <a 
+                      <a
                         href={`https://celoscan.io/tx/${tx.blockchainHash}`}
                         target="_blank"
                         rel="noreferrer"
                         className="text-[9px] text-blue-400 hover:underline block mt-0.5"
                       >
-                        {tx.blockchainHash.slice(0, 6)}...{tx.blockchainHash.slice(-4)}
+                        {tx.blockchainHash.slice(0, 6)}…{tx.blockchainHash.slice(-4)}
                       </a>
                     )}
                   </div>
