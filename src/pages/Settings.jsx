@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { 
-  Bot, Wallet, Eye, EyeOff, Lock, AlertCircle, Check, 
+  Bot, Wallet, Eye, EyeOff, Lock, AlertCircle, Check, Copy,
   Trash2, Plus, RefreshCw, Key, ToggleLeft, ToggleRight, Sparkles
 } from 'lucide-react';
 
@@ -21,7 +21,8 @@ const Settings = () => {
   // Private key export states
   const [password, setPassword] = useState('');
   const [exportedKey, setExportedKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
+  const [showKey, setShowKey] = useState(true); // visible by default once revealed
+  const [keyCopied, setKeyCopied] = useState(false);
   const [keyError, setKeyError] = useState('');
   const [exporting, setExporting] = useState(false);
 
@@ -336,36 +337,67 @@ const Settings = () => {
 
           {exportedKey ? (
             <div className="space-y-4">
-              <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl">
-                ✔ Credentials decrypted successfully. Make sure to copy and store this privately.
+              <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center space-x-2">
+                <span>✔ Credentials decrypted successfully. Copy and store this key somewhere safe — never share it.</span>
               </div>
               
               <div className="space-y-3">
                 <div>
                   <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Celo Wallet Address</span>
-                  <p className="font-mono text-xs text-gray-300 bg-[#131926] p-3 border border-gray-850 rounded-xl mt-1 select-all">
-                    {wallet?.address}
-                  </p>
+                  <div className="relative">
+                    <p className="font-mono text-xs text-gray-300 bg-[#131926] p-3 border border-gray-850 rounded-xl mt-1 select-all pr-10 break-all">
+                      {wallet?.address}
+                    </p>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(wallet?.address || ''); }}
+                      className="absolute top-3 right-2 mt-1 text-gray-500 hover:text-emerald-400 transition"
+                      title="Copy address"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 
                 <div>
                   <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Decrypted Private Key</span>
-                  <div className="relative">
+                  <div className="relative mt-1">
                     <input
                       type={showKey ? 'text' : 'password'}
                       readOnly
                       value={exportedKey}
-                      className="w-full font-mono text-xs text-gray-300 bg-[#131926] p-3 border border-gray-850 rounded-xl mt-1 pr-10 outline-none"
+                      className="w-full font-mono text-xs text-gray-300 bg-[#131926] p-3 border border-emerald-500/30 rounded-xl pr-20 outline-none select-all break-all"
                     />
-                    <button
-                      onClick={() => setShowKey(!showKey)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-550 hover:text-gray-300 mt-1"
-                    >
-                      {showKey ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-                    </button>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 space-x-1">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(exportedKey);
+                          setKeyCopied(true);
+                          setTimeout(() => setKeyCopied(false), 2000);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-emerald-400 transition"
+                        title="Copy private key"
+                      >
+                        {keyCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => setShowKey(!showKey)}
+                        className="p-1.5 text-gray-500 hover:text-gray-300 transition"
+                        title={showKey ? 'Hide key' : 'Show key'}
+                      >
+                        {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
+                  <p className="text-[10px] text-red-400 mt-2">⚠ Never share this key. Anyone with it controls your wallet.</p>
                 </div>
               </div>
+
+              <button
+                onClick={() => { setExportedKey(''); setShowKey(true); setKeyCopied(false); }}
+                className="text-xs text-gray-500 hover:text-gray-300 transition underline"
+              >
+                Clear & re-enter password
+              </button>
             </div>
           ) : (
             <form onSubmit={handleExportKey} className="space-y-4">

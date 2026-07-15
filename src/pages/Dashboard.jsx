@@ -64,6 +64,12 @@ const Dashboard = () => {
       fetchData();
     };
     initDashboard();
+
+    // Auto-refresh wallet balances every 30 seconds to catch deposits
+    const balancePoller = setInterval(async () => {
+      try { await refreshWalletBalance(); } catch (_) {}
+    }, 30000);
+    return () => clearInterval(balancePoller);
   }, []);
 
   const handleRefresh = async () => {
@@ -185,13 +191,35 @@ const Dashboard = () => {
           <div className="flex justify-between items-start">
             <div>
               <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Celo Wallet Balance</span>
+              {/* Show primary balance: USDm */}
               <h3 className="text-3xl font-extrabold mt-1 tracking-tight">
-                ${wallet?.balance.toFixed(2) || '0.00'}{' '}
+                {(() => {
+                  const usdm = wallet?.balances?.find(b => b.symbol === 'USDm');
+                  return usdm ? usdm.balance.toFixed(2) : (wallet?.balance?.toFixed(2) || '0.00');
+                })()}{' '}
                 <span className="text-xs text-emerald-500 font-bold">USDm</span>
               </h3>
+              {/* Show CELO balance underneath */}
+              {(() => {
+                const celo = wallet?.balances?.find(b => b.symbol === 'CELO');
+                return celo && celo.balance > 0 ? (
+                  <p className="text-[11px] text-amber-400 font-semibold mt-0.5">
+                    {celo.balance.toFixed(4)} CELO
+                  </p>
+                ) : null;
+              })()}
             </div>
-            <div className={`p-2.5 rounded-xl ${darkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-              <Wallet className="w-5 h-5" />
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleRefresh}
+                title="Refresh balances"
+                className={`p-2 rounded-xl transition ${refreshing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800/30'} text-gray-500 hover:text-emerald-400`}
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+              <div className={`p-2.5 rounded-xl ${darkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                <Wallet className="w-5 h-5" />
+              </div>
             </div>
           </div>
 
