@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff, Bot, Sparkles } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff, Bot, Sparkles, ShieldCheck } from 'lucide-react';
 
 const Register = () => {
-  const { register } = useAuth();
+  const { register, requestRegisterOtp } = useAuth();
   const navigate = useNavigate();
 
+  // step 'details' collects the account info + sends the code;
+  // step 'verify' collects the emailed OTP and creates the account.
+  const [step, setStep] = useState('details');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
+  // Step 1: validate inputs, then request an email verification code.
+  const handleRequestCode = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -28,14 +35,47 @@ const Register = () => {
     }
 
     setLoading(true);
-
     try {
-      await register(name, email, password);
-      navigate('/dashboard');
+      await requestRegisterOtp(email);
+      setInfo(`We sent a 6-digit code to ${email}.`);
+      setStep('verify');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Could not send verification code. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Step 2: verify the code and create the account.
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!code || code.length < 6) {
+      return setError('Enter the 6-digit code from your email.');
+    }
+
+    setLoading(true);
+    try {
+      await register(name, email, password, code);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setResending(true);
+    try {
+      await requestRegisterOtp(email);
+      setInfo(`A new code was sent to ${email}.`);
+    } catch (err) {
+      setError(err.message || 'Could not resend code.');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -111,108 +151,183 @@ const Register = () => {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Full Name
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                <User className="w-4.5 h-4.5" />
-              </span>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Jane Doe"
-                className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
-              />
-            </div>
+        {/* Info notification */}
+        {info && step === 'verify' && (
+          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center space-x-2">
+            <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+            <span>{info}</span>
           </div>
+        )}
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                <Mail className="w-4.5 h-4.5" />
-              </span>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jane@example.com"
-                className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
-              />
+        {/* Step 1: account details */}
+        {step === 'details' && (
+          <form onSubmit={handleRequestCode} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <User className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Jane Doe"
+                  className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                <Lock className="w-4.5 h-4.5" />
-              </span>
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full pl-10 pr-10 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
-              />
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <Mail className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="jane@example.com"
+                  className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <Lock className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                  className="w-full pl-10 pr-10 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-550 hover:text-gray-300"
+                >
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <Lock className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm password"
+                  className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2">
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-550 hover:text-gray-300"
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] font-bold rounded-xl text-sm shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/25 flex items-center justify-center space-x-2 transition duration-150"
               >
-                {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                {loading ? (
+                  <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                ) : (
+                  <>
+                    <span>Send Verification Code</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
-          </div>
+          </form>
+        )}
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                <Lock className="w-4.5 h-4.5" />
-              </span>
-              <input
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm password"
-                className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition"
-              />
+        {/* Step 2: verify emailed code */}
+        {step === 'verify' && (
+          <form onSubmit={handleVerify} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Verification Code
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <ShieldCheck className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="w-full pl-10 pr-4 py-3 bg-[#131926] border border-gray-800 focus:border-emerald-500/50 rounded-xl text-sm text-gray-100 placeholder-gray-500 outline-none transition tracking-[0.4em] font-semibold"
+                />
+              </div>
+              <p className="text-[11px] text-gray-500 mt-2">
+                Enter the 6-digit code sent to <span className="text-gray-300">{email}</span>. It expires in 10 minutes.
+              </p>
             </div>
-          </div>
 
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] font-bold rounded-xl text-sm shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/25 flex items-center justify-center space-x-2 transition duration-150"
-            >
-              {loading ? (
-                <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-              ) : (
-                <>
-                  <span>Create Wallet & Register</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-[#080B11] font-bold rounded-xl text-sm shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/25 flex items-center justify-center space-x-2 transition duration-150"
+              >
+                {loading ? (
+                  <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                ) : (
+                  <>
+                    <span>Verify & Create Wallet</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <button
+                type="button"
+                onClick={() => { setStep('details'); setError(''); setInfo(''); setCode(''); }}
+                className="text-gray-500 hover:text-gray-300 font-medium"
+              >
+                ← Edit details
+              </button>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-emerald-500 hover:text-emerald-400 font-semibold disabled:opacity-50"
+              >
+                {resending ? 'Sending…' : 'Resend code'}
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Redirect */}
         <div className="mt-6 text-center text-sm text-gray-500">

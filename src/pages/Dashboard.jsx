@@ -191,20 +191,27 @@ const Dashboard = () => {
           <div className="flex justify-between items-start">
             <div>
               <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Celo Wallet Balance</span>
-              {/* Show primary balance: USDm */}
+              {/* Total portfolio value in USD across all tokens */}
               <h3 className="text-3xl font-extrabold mt-1 tracking-tight">
+                <span className="text-lg text-emerald-500 font-bold align-top">$</span>
                 {(() => {
-                  const usdm = wallet?.balances?.find(b => b.symbol === 'USDm');
-                  return usdm ? usdm.balance.toFixed(2) : (wallet?.balance?.toFixed(2) || '0.00');
+                  const total = typeof wallet?.totalUsd === 'number'
+                    ? wallet.totalUsd
+                    : (wallet?.balances?.reduce((sum, b) => sum + (b.usdValue || 0), 0) ?? wallet?.balance ?? 0);
+                  return total.toFixed(2);
                 })()}{' '}
-                <span className="text-xs text-emerald-500 font-bold">USDm</span>
+                <span className="text-xs text-gray-400 font-semibold">USD</span>
               </h3>
-              {/* Show CELO balance underneath */}
+              {/* Show CELO + USDm breakdown underneath */}
               {(() => {
+                const usdm = wallet?.balances?.find(b => b.symbol === 'USDm');
                 const celo = wallet?.balances?.find(b => b.symbol === 'CELO');
-                return celo && celo.balance > 0 ? (
-                  <p className="text-[11px] text-amber-400 font-semibold mt-0.5">
-                    {celo.balance.toFixed(4)} CELO
+                const parts = [];
+                if (usdm && usdm.balance > 0) parts.push(`${usdm.balance.toFixed(2)} USDm`);
+                if (celo && celo.balance > 0) parts.push(`${celo.balance.toFixed(4)} CELO`);
+                return parts.length ? (
+                  <p className="text-[11px] text-gray-400 font-semibold mt-0.5">
+                    {parts.join(' · ')}
                   </p>
                 ) : null;
               })()}

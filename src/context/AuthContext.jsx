@@ -82,14 +82,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  // Step 1 of registration: request an email verification code.
+  const requestRegisterOtp = async (email) => {
+    const res = await fetch(`${API_URL}/auth/register/request-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Could not send verification code');
+    }
+    return data;
+  };
+
+  // Step 2 of registration: verify code and create the account.
+  const register = async (name, email, password, code) => {
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password, code })
       });
 
       const data = await res.json();
@@ -105,6 +120,34 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       throw err;
     }
+  };
+
+  // Forgot password: request a reset code by email.
+  const requestPasswordReset = async (email) => {
+    const res = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Could not send reset code');
+    }
+    return data;
+  };
+
+  // Forgot password: verify code and set a new password.
+  const resetPassword = async (email, code, newPassword) => {
+    const res = await fetch(`${API_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Could not reset password');
+    }
+    return data;
   };
 
   const logout = () => {
@@ -170,6 +213,9 @@ export const AuthProvider = ({ children }) => {
         setDarkMode,
         login,
         register,
+        requestRegisterOtp,
+        requestPasswordReset,
+        resetPassword,
         logout,
         updatePreferences,
         refreshWalletBalance
