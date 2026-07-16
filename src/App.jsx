@@ -25,13 +25,14 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
-          //* <Route path="" element={<Landing />} /> *//
+          <Route path="/" element={<Dashboard />} />
+          <Route path="" element={<Landing />} />
           <Route path="" element={<Login />} />
           <Route path="" element={<Register />} />
-
+        
           {/* Protected App Routes */}
           <Route 
-            path="/" 
+            path="" 
             element={
               <ProtectedRoute>
                 <Layout>
@@ -40,6 +41,7 @@ const App = () => {
               </ProtectedRoute>
             } 
           />
+          
           <Route 
             path="/budgets" 
             element={
