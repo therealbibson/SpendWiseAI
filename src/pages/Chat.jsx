@@ -12,7 +12,12 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  
+  // x402: remaining free chats today + per-reply payment badges.
+  const [quota, setQuota] = useState(null);
+  // Maps an assistant message's timestamp (ISO) -> { settlement } for messages
+  // that required an x402 payment, so we can show a "paid" badge under them.
+  const [paidReplies, setPaidReplies] = useState({});
+
   const chatEndRef = useRef(null);
 
   const suggestedPrompts = [
@@ -25,14 +30,25 @@ const Chat = () => {
 
   const fetchChatHistory = async () => {
     try {
-      const data = await api.getChatHistory();
+      const [data, quotaData] = await Promise.all([
+        api.getChatHistory(),
+        api.getChatQuota().catch(() => null),
+      ]);
       setMessages(data.messages || []);
+      if (quotaData) setQuota(quotaData);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch chat logs.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshQuota = async () => {
+    try {
+      const q = await api.getChatQuota();
+      setQuota(q);
+    } catch (_) { /* non-fatal */ }
   };
 
   useEffect(() => {
@@ -60,9 +76,29 @@ const Chat = () => {
 
     try {
       const data = await api.postChatMessage(textToSend);
-      
+
+      const serverMessages = data.conversation.messages;
+
+      // If this message was x402-paid, tag the newest assistant reply so we can
+      // render a payment badge beneath it.
+      if (data._x402?.paid) {
+        const lastAssistant = [...serverMessages].reverse().find((m) => m.role === 'assistant');
+        if (lastAssistant) {
+          setPaidReplies((prev) => ({
+            ...prev,
+            [new Date(lastAssistant.timestamp).toISOString()]: {
+              settlement: data._x402.settlement,
+              priceUsdc: quota?.priceUsdc,
+            },
+          }));
+        }
+      }
+
       // Update with server records
-      setMessages(data.conversation.messages);
+      setMessages(serverMessages);
+
+      // Payment (or free message) consumed — refresh the remaining allowance.
+      refreshQuota();
 
       // If an action was executed by the agent, refresh user wallet balances
       if (data.actionTriggered) {
@@ -109,13 +145,29 @@ const Chat = () => {
             </div>
           </div>
 
-          <button 
-            onClick={handleClearHistory}
-            className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg transition"
-            title="Clear Chat Log"
-          >
-            <Trash2 className="w-4.5 h-4.5" />
-          </button>
+          <div className="flex items-center space-x-3">
+            {quota && (
+              <span
+                title={`Free chats reset daily. Beyond the free tier each message costs ${quota.priceUsdc} USDC on Celo.`}
+                className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
+                  quota.remaining > 0
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                }`}
+              >
+                {quota.remaining > 0
+                  ? `${quota.remaining} free chat${quota.remaining === 1 ? '' : 's'} left today`
+                  : `Free tier used · ${quota.priceUsdc} USDC / msg`}
+              </span>
+            )}
+            <button
+              onClick={handleClearHistory}
+              className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg transition"
+              title="Clear Chat Log"
+            >
+              <Trash2 className="w-4.5 h-4.5" />
+            </button>
+          </div>
         </div>
 
         {/* Messages list */}
@@ -135,7 +187,9 @@ const Chat = () => {
           ) : (
             messages.map((msg, index) => {
               const isAI = msg.role === 'assistant';
-              
+              const payment = isAI ? paidReplies[new Date(msg.timestamp).toISOString()] : null;
+              const txHash = payment?.settlement?.transaction || payment?.settlement?.txHash;
+
               return (
                 <div key={index} className={`flex ${isAI ? 'justify-start' : 'justify-end'}`}>
                   <div className={`flex items-start space-x-2.5 max-w-[80%] ${isAI ? 'text-left' : 'flex-row-reverse space-x-reverse'}`}>
@@ -146,15 +200,35 @@ const Chat = () => {
                     )}
                     <div>
                       <div className={`p-4 rounded-2xl text-xs leading-relaxed ${
-                        isAI 
+                        isAI
                           ? (darkMode ? 'bg-[#151D30] text-gray-200' : 'bg-gray-100 text-gray-800')
                           : 'bg-emerald-500 text-[#080B11] font-medium'
                       }`}>
                         {msg.content}
                       </div>
-                      <span className="text-[9px] text-gray-500 block mt-1 px-1">
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className="flex items-center space-x-2 mt-1 px-1">
+                        <span className="text-[9px] text-gray-500">
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {payment && (
+                          <span className="text-[9px] text-emerald-400 font-semibold flex items-center space-x-1">
+                            <Sparkles className="w-3 h-3" />
+                            <span>Paid {payment.priceUsdc ?? ''} USDC</span>
+                            {txHash && (
+                              <a
+                                href={`https://celoscan.io/tx/${txHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline inline-flex items-center space-x-0.5 hover:text-emerald-300"
+                                title="View settlement on CeloScan"
+                              >
+                                <span className="font-mono">{txHash.slice(0, 6)}…{txHash.slice(-4)}</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

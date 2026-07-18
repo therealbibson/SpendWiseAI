@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Plus, Search, Filter, ArrowUpRight, ArrowDownRight, 
-  ExternalLink, FileSpreadsheet, AlertCircle, Sparkles, Check
+import {
+  Plus, Search, Filter, ArrowUpRight, ArrowDownRight,
+  ExternalLink, FileSpreadsheet, AlertCircle, Sparkles, Check, RefreshCw
 } from 'lucide-react';
 
 const Transactions = () => {
@@ -34,6 +34,10 @@ const Transactions = () => {
   const [importing, setImporting] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
 
+  // On-chain sync state
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
+
   const categories = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education', 'Savings', 'General'];
 
   const categoryColors = {
@@ -45,6 +49,7 @@ const Transactions = () => {
     entertainment: 'bg-pink-500/10 text-pink-400',
     health: 'bg-teal-500/10 text-teal-400',
     education: 'bg-indigo-500/10 text-indigo-400',
+    income: 'bg-green-500/10 text-green-400',
     general: 'bg-gray-550/10 text-gray-400'
   };
 
@@ -104,6 +109,22 @@ const Transactions = () => {
     }
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMessage('');
+    try {
+      const res = await api.syncTransactions();
+      setSyncMessage(res.message || 'On-chain sync complete.');
+      await fetchTransactions();
+      refreshWalletBalance();
+      setTimeout(() => setSyncMessage(''), 4000);
+    } catch (err) {
+      setSyncMessage(err.message || 'Sync failed.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleImportMock = async () => {
     setImporting(true);
     // Create some premium mock transactions
@@ -142,6 +163,14 @@ const Transactions = () => {
         </div>
         <div className="flex items-center space-x-3">
           <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="bg-[#131926] hover:bg-[#1a2233] border border-gray-800 text-gray-300 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition disabled:opacity-60"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            <span>{syncing ? 'Syncing...' : 'Sync On-Chain'}</span>
+          </button>
+          <button
             onClick={() => setOpenModal(true)}
             className="bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition"
           >
@@ -150,6 +179,13 @@ const Transactions = () => {
           </button>
         </div>
       </div>
+
+      {syncMessage && (
+        <div className="p-4 bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs rounded-xl flex items-center space-x-2">
+          <RefreshCw className="w-4 h-4 flex-shrink-0" />
+          <span>{syncMessage}</span>
+        </div>
+      )}
 
       {importSuccess && (
         <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center space-x-2 animate-pulse">

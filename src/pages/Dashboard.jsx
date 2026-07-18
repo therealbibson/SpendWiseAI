@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [savingsGoals, setSavingsGoals] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [insights, setInsights] = useState([]);
+  const [x402Metrics, setX402Metrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -32,13 +33,14 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [statsData, budgetsData, txsData, goalsData, subsData, insightsData] = await Promise.all([
+      const [statsData, budgetsData, txsData, goalsData, subsData, insightsData, metricsData] = await Promise.all([
         api.getStats(),
         api.getBudgets(),
         api.getTransactions(),
         api.getSavingsGoals(),
         api.getSubscriptions(),
-        api.getInsights()
+        api.getInsights(),
+        api.getX402Metrics().catch(() => null)
       ]);
 
       setStats(statsData);
@@ -47,6 +49,7 @@ const Dashboard = () => {
       setSavingsGoals(goalsData);
       setSubscriptions(subsData);
       setInsights(insightsData);
+      if (metricsData) setX402Metrics(metricsData);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -164,6 +167,7 @@ const Dashboard = () => {
     entertainment: 'bg-pink-500/10 text-pink-400',
     health: 'bg-teal-500/10 text-teal-400',
     education: 'bg-indigo-500/10 text-indigo-400',
+    income: 'bg-green-500/10 text-green-400',
     general: 'bg-gray-550/10 text-gray-400'
   };
 
@@ -315,6 +319,42 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      {/* x402 PAYMENT METRICS (Celo · USDC) */}
+      {x402Metrics && (
+        <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-[#0D121F] border-gray-800' : 'bg-white border-gray-200'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">x402 Payments</h3>
+              <p className="text-[11px] text-gray-500 mt-0.5">On-chain USDC micropayments settled on Celo with attribution tag.</p>
+            </div>
+            <Link to="/insights" className="text-xs text-emerald-500 hover:text-emerald-400 font-semibold flex items-center space-x-0.5">
+              <span>Details</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-4 bg-[#131926]/40 border border-gray-850 rounded-2xl">
+              <h4 className="text-2xl font-extrabold tracking-tight text-emerald-400">
+                {x402Metrics.platform?.x402Payments ?? 0}
+              </h4>
+              <p className="text-[11px] text-gray-500 font-semibold mt-0.5">Payments</p>
+            </div>
+            <div className="p-4 bg-[#131926]/40 border border-gray-850 rounded-2xl">
+              <h4 className="text-2xl font-extrabold tracking-tight text-emerald-400">
+                {x402Metrics.platform?.x402Settlements ?? 0}
+              </h4>
+              <p className="text-[11px] text-gray-500 font-semibold mt-0.5">Settlements</p>
+            </div>
+            <div className="p-4 bg-[#131926]/40 border border-gray-850 rounded-2xl">
+              <h4 className="text-2xl font-extrabold tracking-tight text-emerald-400">
+                ${(x402Metrics.platform?.x402VolumeUsd ?? 0).toFixed(2)}
+              </h4>
+              <p className="text-[11px] text-gray-500 font-semibold mt-0.5">Volume (USD)</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* WALLET ASSETS LIST & QUICK SEND */}
       <div className={`p-6 rounded-3xl border ${

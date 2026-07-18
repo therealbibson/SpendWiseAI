@@ -16,6 +16,43 @@ const handleResponse = async (res) => {
   return data;
 };
 
+/**
+ * Perform a POST that may be x402-gated. If the server answers 402, resend with
+ * X-PAYMENT: 'auto' so the custodial backend signs + settles the USDC payment
+ * on Celo, then return the handler's result. Returns:
+ *   { data, settlement, paid }
+ * where `paid` is true when a payment was made and `settlement` holds the
+ * decoded X-PAYMENT-RESPONSE (tx hash, payer, network).
+ */
+const x402Post = async (path, body) => {
+  const url = `${BASE_URL}${path}`;
+  const opts = {
+    method: 'POST',
+    headers: getHeaders(),
+    body: body ? JSON.stringify(body) : undefined,
+  };
+
+  // 1. Initial request — free tier may satisfy it outright.
+  const first = await fetch(url, opts);
+  if (first.status !== 402) {
+    return { data: await handleResponse(first), settlement: null, paid: false };
+  }
+
+  // 2. 402: resend authorizing the payment (custodial auto-sign).
+  const paid = await fetch(url, {
+    ...opts,
+    headers: { ...opts.headers, 'X-PAYMENT': 'auto' },
+  });
+  const data = await handleResponse(paid);
+
+  let settlement = null;
+  const settleHeader = paid.headers.get('X-PAYMENT-RESPONSE');
+  if (settleHeader) {
+    try { settlement = JSON.parse(atob(settleHeader)); } catch { /* ignore */ }
+  }
+  return { data, settlement, paid: true };
+};
+
 export const api = {
   // Budgets
   getBudgets: async () => {
@@ -75,6 +112,13 @@ export const api = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ items })
+    });
+    return handleResponse(res);
+  },
+  syncTransactions: async () => {
+    const res = await fetch(`${BASE_URL}/transactions/sync`, {
+      method: 'POST',
+      headers: getHeaders()
     });
     return handleResponse(res);
   },
@@ -183,12 +227,15 @@ export const api = {
     const res = await fetch(`${BASE_URL}/chat/history`, { headers: getHeaders() });
     return handleResponse(res);
   },
+  // Chat is free up to the daily allowance; beyond it each message is x402-paid
+  // (0.02 USDC on Celo) transparently. Returns the chat payload, augmented with
+  // `_x402` = { paid, settlement } so the UI can surface a payment badge.
   postChatMessage: async (message) => {
-    const res = await fetch(`${BASE_URL}/chat`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ message })
-    });
+    const { data, settlement, paid } = await x402Post('/chat', { message });
+    return { ...data, _x402: { paid, settlement } };
+  },
+  getChatQuota: async () => {
+    const res = await fetch(`${BASE_URL}/chat/quota`, { headers: getHeaders() });
     return handleResponse(res);
   },
 
@@ -202,6 +249,16 @@ export const api = {
       method: 'POST',
       headers: getHeaders()
     });
+    return handleResponse(res);
+  },
+  // Premium x402-gated report. Always paid (0.10 USDC on Celo). Returns
+  // { report, settlement }.
+  generatePremiumInsights: async () => {
+    const { data, settlement } = await x402Post('/insights/premium');
+    return { report: data, settlement };
+  },
+  getX402Metrics: async () => {
+    const res = await fetch(`${BASE_URL}/x402/metrics`, { headers: getHeaders() });
     return handleResponse(res);
   },
 
