@@ -101,7 +101,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#080B11] flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#080B11] flex items-center justify-center px-4 py-8 relative overflow-x-hidden overflow-y-auto">
       
       {/* Subtle Background */}
       <div className="absolute inset-0 bg-[#080B11] pointer-events-none opacity-5 z-0"></div>
@@ -215,7 +215,7 @@ const Login = () => {
       {/* Forgot Password Modal */}
       {forgotOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#0D121F] border border-gray-850 p-6 rounded-2xl relative shadow-2xl">
+          <div className="w-full max-w-sm bg-[#0D121F] border border-gray-850 p-6 rounded-2xl relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-white mb-2">Reset Password</h3>
             <p className="text-xs text-gray-400 mb-4">
               {forgotStep === 'request'

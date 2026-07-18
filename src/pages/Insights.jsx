@@ -94,18 +94,18 @@ const Insights = () => {
     <div className="space-y-8 text-left">
       
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h2 className={`text-2xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             AI Insights & Reports
           </h2>
           <p className="text-gray-400 text-sm">Deep learning reports auditing cashflow limits and wallet transactions.</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={handleAudit}
             disabled={auditing}
-            className={`flex items-center space-x-2 px-4 py-2.5 border rounded-xl text-xs font-semibold shadow-sm transition ${
+            className={`flex items-center justify-center space-x-2 px-4 py-2.5 border rounded-xl text-xs font-semibold shadow-sm transition ${
               darkMode ? 'bg-[#0D121F] border-gray-800 hover:bg-gray-800 text-gray-300' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
             }`}
           >
@@ -116,7 +116,7 @@ const Insights = () => {
             onClick={handleBuyPremium}
             disabled={buying}
             title="Pay 0.10 USDC on Celo (x402) to generate a premium report"
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-[#080B11] shadow-lg shadow-emerald-500/10 transition disabled:opacity-60"
+            className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-[#080B11] shadow-lg shadow-emerald-500/10 transition disabled:opacity-60"
           >
             <Sparkles className="w-4 h-4" />
             <span>{buying ? 'Processing payment...' : 'Premium Report · 0.10 USDC'}</span>

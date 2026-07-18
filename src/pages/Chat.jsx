@@ -131,21 +131,21 @@ const Chat = () => {
       }`}>
         
         {/* Chat Header */}
-        <div className="p-4 border-b border-inherit flex justify-between items-center bg-[#141B2D]/10">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+        <div className="p-4 border-b border-inherit flex justify-between items-center gap-2 bg-[#141B2D]/10">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
               <Bot className="w-5 h-5 animate-pulse" />
             </div>
-            <div>
-              <h3 className="font-extrabold text-sm text-gray-200">SpendWise Finance Agent</h3>
+            <div className="min-w-0">
+              <h3 className="font-extrabold text-sm text-gray-200 truncate">SpendWise Finance Agent</h3>
               <span className="text-[10px] text-emerald-500 font-semibold flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>Active & transacting on Celo Mainnet</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <span className="truncate">Active & transacting on Celo Mainnet</span>
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
             {quota && (
               <span
                 title={`Free chats reset daily. Beyond the free tier each message costs ${quota.priceUsdc} USDC on Celo.`}

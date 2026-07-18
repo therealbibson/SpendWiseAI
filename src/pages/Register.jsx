@@ -80,7 +80,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#080B11] flex flex-col md:flex-row items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#080B11] flex flex-col md:flex-row items-center justify-center p-4 py-8 relative overflow-x-hidden overflow-y-auto">
       
       {/* Subtle Background */}
       <div className="absolute inset-0 bg-[#080B11] pointer-events-none opacity-5 z-0"></div>

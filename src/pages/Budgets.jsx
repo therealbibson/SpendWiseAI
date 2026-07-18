@@ -129,7 +129,7 @@ const Budgets = () => {
     <div className="space-y-8 text-left">
       
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className={`text-2xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Budget Manager
@@ -138,7 +138,7 @@ const Budgets = () => {
         </div>
         <button
           onClick={() => setOpenModal(true)}
-          className="bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition"
+          className="w-full sm:w-auto justify-center bg-emerald-500 hover:bg-emerald-400 text-[#080B11] px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition"
         >
           <Plus className="w-4.5 h-4.5" />
           <span>New Budget Limit</span>
@@ -272,7 +272,7 @@ const Budgets = () => {
       {/* CREATE/EDIT BUDGET MODAL */}
       {openModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-          <div className={`w-full max-w-md border p-6 rounded-2xl relative shadow-2xl ${
+          <div className={`w-full max-w-md border p-6 rounded-2xl relative shadow-2xl max-h-[90vh] overflow-y-auto ${
             darkMode ? 'bg-[#0D121F] border-gray-850 text-gray-100' : 'bg-white border-gray-200 text-gray-800'
           }`}>
             <h3 className="text-lg font-bold mb-2">Create Budget Limit</h3>

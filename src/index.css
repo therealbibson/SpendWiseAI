@@ -36,6 +36,16 @@ body {
   margin: 0;
 }
 
+/* Hide scrollbar for horizontally-scrollable rows (e.g. mobile tab bars)
+   while keeping scroll functionality. */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 #root {
   width: 100%;
   min-height: 100vh;

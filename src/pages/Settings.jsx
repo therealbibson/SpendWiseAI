@@ -204,10 +204,10 @@ const Settings = () => {
       </div>
 
       {/* Navigation tabs */}
-      <div className="flex border-b border-gray-800/10 space-x-6 text-sm font-semibold">
+      <div className="flex border-b border-gray-800/10 space-x-6 text-sm font-semibold overflow-x-auto whitespace-nowrap no-scrollbar">
         <button
           onClick={() => setActiveTab('profile')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 shrink-0 border-b-2 transition ${
             activeTab === 'profile' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -215,7 +215,7 @@ const Settings = () => {
         </button>
         <button
           onClick={() => setActiveTab('wallet')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 shrink-0 border-b-2 transition ${
             activeTab === 'wallet' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -223,7 +223,7 @@ const Settings = () => {
         </button>
         <button
           onClick={() => setActiveTab('automation')}
-          className={`pb-3 border-b-2 transition ${
+          className={`pb-3 shrink-0 border-b-2 transition ${
             activeTab === 'automation' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -530,7 +530,7 @@ const Settings = () => {
       {/* CREATE NEW RULE MODAL */}
       {openRuleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-          <div className={`w-full max-w-md border p-6 rounded-2xl relative shadow-2xl ${
+          <div className={`w-full max-w-md border p-6 rounded-2xl relative shadow-2xl max-h-[90vh] overflow-y-auto ${
             darkMode ? 'bg-[#0D121F] border-gray-850 text-gray-100' : 'bg-white border-gray-200 text-gray-850'
           }`}>
             <h3 className="text-lg font-bold mb-2">Create Agent Rule</h3>
