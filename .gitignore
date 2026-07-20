@@ -25,3 +25,36 @@ dist-ssr
 
 .env
 .env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment & secrets — never commit these
+.env
+**/.env
+.env.*
+**/.env.*
+*.pem
+*.key
+
+# Build output
+dist/
+build/
+**/dist/
+**/build/
+
+# Hardhat
+SpendWise-Contract/artifacts/
+SpendWise-Contract/cache/
+SpendWise-Contract/typechain-types/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
